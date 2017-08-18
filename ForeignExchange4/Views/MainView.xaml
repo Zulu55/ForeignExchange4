@@ -46,6 +46,7 @@
                 BackgroundColor="Navy"
                 BorderRadius="23"
                 FontAttributes="Bold"
+                IsEnabled="{Binding IsEnabled, Mode=TwoWay}"
                 Text="Convert"
                 TextColor="White">
             </Button>
