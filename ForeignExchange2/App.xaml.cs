@@ -1,4 +1,4 @@
-﻿namespace ForeignExchange4
+﻿namespace ForeignExchange2
 {
     using Xamarin.Forms;
     using Views;

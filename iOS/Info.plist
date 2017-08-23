@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDisplayName</key>
-	<string>ForeignExchange4</string>
+	<string>ForeignExchange2</string>
 	<key>CFBundleName</key>
-	<string>ForeignExchange4</string>
+	<string>ForeignExchange2</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.zulusoftware.ForeignExchange4</string>
+	<string>com.zulusoftware.ForeignExchange2</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.0</string>
 	<key>CFBundleVersion</key>

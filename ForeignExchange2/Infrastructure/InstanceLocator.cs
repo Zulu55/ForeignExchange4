@@ -1,4 +1,4 @@
-﻿namespace ForeignExchange4.Infrastructure
+﻿namespace ForeignExchange2.Infrastructure
 {
     using ViewModels;
 

@@ -1,4 +1,4 @@
-﻿namespace ForeignExchange4.Models
+﻿namespace ForeignExchange2.Models
 {
     public class Rate
     {
@@ -8,6 +8,6 @@
 
 		public double TaxRate { get; set; }
 
-		public string Name { get; set; }
+		public string Name { get; set; }    
     }
 }

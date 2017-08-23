@@ -1,4 +1,4 @@
-﻿namespace ForeignExchange4.ViewModels
+﻿namespace ForeignExchange2.ViewModels
 {
     using System;
     using System.Collections.Generic;
@@ -18,14 +18,16 @@
         #endregion
 
         #region Attributes
-        ObservableCollection<Rate> _rates;
         bool _isRunning;
         bool _isEnabled;
         string _result;
-        #endregion
+        ObservableCollection<Rate> _rates;
+		Rate _sourceRate;
+		Rate _targetRate;
+		#endregion
 
-        #region Propperties
-        public string Amount
+		#region Properties
+		public string Amount
         {
             get;
             set;
@@ -33,51 +35,75 @@
 
         public ObservableCollection<Rate> Rates
         {
-            get
-            {
-                return _rates;
-            }
-            set
-            {
-                if (_rates != value)
-                {
-                    _rates = value;
-                    PropertyChanged?.Invoke(
-                        this, 
-                        new PropertyChangedEventArgs(nameof(Rates)));
-                }
-            }
-        }
-
-        public Rate SourceRate
-        {
-            get;
-            set;
-        }
-
-        public Rate TargetRate
-        {
-            get;
-            set;
-        }
-
-        public bool IsRunning
-        {
 			get
 			{
-				return _isRunning;
+                return _rates;
 			}
 			set
 			{
-				if (_isRunning != value)
+				if (_rates != value)
 				{
-					_isRunning = value;
+					_rates = value;
 					PropertyChanged?.Invoke(
 						this,
-						new PropertyChangedEventArgs(nameof(IsRunning)));
+						new PropertyChangedEventArgs(nameof(Rates)));
 				}
 			}
 		}
+
+        public Rate SourceRate
+        {
+			get
+			{
+				return _sourceRate;
+			}
+			set
+			{
+				if (_sourceRate != value)
+				{
+					_sourceRate = value;
+					PropertyChanged?.Invoke(
+						this,
+						new PropertyChangedEventArgs(nameof(SourceRate)));
+				}
+			}
+		}
+
+        public Rate TargetRate
+        {
+			get
+			{
+				return _targetRate;
+			}
+			set
+			{
+				if (_targetRate != value)
+				{
+					_targetRate = value;
+					PropertyChanged?.Invoke(
+						this,
+						new PropertyChangedEventArgs(nameof(TargetRate)));
+				}
+			}
+		}
+
+        public bool IsRunning
+        {
+            get
+            {
+                return _isRunning;
+            }
+            set
+            {
+                if (_isRunning != value)
+                {
+                    _isRunning = value;
+                    PropertyChanged?.Invoke(
+                        this,
+                        new PropertyChangedEventArgs(nameof(IsRunning)));
+                }
+            }
+        }
 
         public bool IsEnabled
         {
@@ -114,7 +140,7 @@
 				}
 			}
 		}
-        #endregion    
+        #endregion
 
         #region Constructors
         public MainViewModel()
@@ -126,8 +152,8 @@
         #region Methods
         async void LoadRates()
         {
-			Result = "Loading rates...";
-			IsRunning = true;
+            IsRunning = true;
+            Result = "Loading rates...";
 
             try
             {
@@ -139,29 +165,43 @@
                 var result = await response.Content.ReadAsStringAsync();
                 if (!response.IsSuccessStatusCode)
                 {
-					Result = result;
 					IsRunning = false;
-					IsEnabled = false;
+					Result = result;
 				}
 
-                var list = JsonConvert.DeserializeObject<List<Rate>>(result);
-                Rates = new ObservableCollection<Rate>(list);
-
+                var rates = JsonConvert.DeserializeObject<List<Rate>>(result);
+                Rates = new ObservableCollection<Rate>(rates);
+			
+                IsRunning = false;
+                IsEnabled = true;
 				Result = "Ready to convert!";
-				IsRunning = false;
-				IsEnabled = true;
 			}
             catch (Exception ex)
             {
-				Result = ex.Message;
                 IsRunning = false;
-                IsEnabled = false;
+				Result = ex.Message;
 			}
         }
-		#endregion
+        #endregion
 
-		#region Commands
-		public ICommand ConvertCommand
+        #region Commands
+        public ICommand SwitchCommand
+        {
+			get
+			{
+				return new RelayCommand(Switch);
+			}
+		}
+
+        void Switch()
+        {
+            var aux = SourceRate;
+            SourceRate = TargetRate;
+            TargetRate = aux;
+            Convert();
+        }
+
+        public ICommand ConvertCommmand
         {
             get
             {
@@ -174,8 +214,8 @@
             if (string.IsNullOrEmpty(Amount))
             {
                 await Application.Current.MainPage.DisplayAlert(
-                    "Error",
-                    "You must enter an amount.",
+                    "Error", 
+                    "You must enter a value in amount.", 
                     "Accept");
                 return;
             }
@@ -215,10 +255,10 @@
             Result = string.Format(
                 "{0} {1:C2} = {2} {3:C2}", 
                 SourceRate.Code, 
-                amount,
+                amount, 
                 TargetRate.Code, 
                 amountConverted);
- 		}
+		}
         #endregion
     }
 }

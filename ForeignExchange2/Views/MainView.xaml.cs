@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using Xamarin.Forms;
 
-namespace ForeignExchange4.Views
+namespace ForeignExchange2.Views
 {
     public partial class MainView : ContentPage
     {
