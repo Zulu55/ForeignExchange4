@@ -1,20 +1,22 @@
 ﻿namespace ForeignExchange2.ViewModels
 {
-    using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.ComponentModel;
-    using System.Net.Http;
     using System.Windows.Input;
+    using ForeignExchange2.Helpers;
     using GalaSoft.MvvmLight.Command;
     using Models;
-    using Newtonsoft.Json;
     using Xamarin.Forms;
 
     public class MainViewModel : INotifyPropertyChanged
     {
         #region Events
         public event PropertyChangedEventHandler PropertyChanged;
+        #endregion
+
+        #region Services
+        ApiService apiService;
         #endregion
 
         #region Attributes
@@ -24,9 +26,28 @@
         ObservableCollection<Rate> _rates;
 		Rate _sourceRate;
 		Rate _targetRate;
+        string _status;
 		#endregion
 
 		#region Properties
+        public string Status
+        {
+			get
+			{
+				return _status;
+			}
+			set
+			{
+				if (_status != value)
+				{
+					_status = value;
+					PropertyChanged?.Invoke(
+						this,
+						new PropertyChangedEventArgs(nameof(Status)));
+				}
+			}
+		}
+
 		public string Amount
         {
             get;
@@ -145,6 +166,7 @@
         #region Constructors
         public MainViewModel()
         {
+            apiService = new ApiService();
             LoadRates();
         }
         #endregion
@@ -155,33 +177,31 @@
             IsRunning = true;
             Result = "Loading rates...";
 
-            try
+            var connection = await apiService.CheckConnection();
+            if (!connection.IsSuccess)
             {
-                var client = new HttpClient();
-                client.BaseAddress = new 
-                    Uri("http://apiexchangerates.azurewebsites.net");
-                var controller = "/api/Rates";
-                var response = await client.GetAsync(controller);
-                var result = await response.Content.ReadAsStringAsync();
-                if (!response.IsSuccessStatusCode)
-                {
-					IsRunning = false;
-					Result = result;
-				}
+				IsRunning = false;
+				Result = connection.Message;
+				return;
+			}
 
-                var rates = JsonConvert.DeserializeObject<List<Rate>>(result);
-                Rates = new ObservableCollection<Rate>(rates);
-			
-                IsRunning = false;
-                IsEnabled = true;
-				Result = "Ready to convert!";
-			}
-            catch (Exception ex)
+            var response = await apiService.GetList<Rate>(
+                "http://apiexchangerates.azurewebsites.net", 
+                "api/Rates");
+
+            if (!response.IsSuccess)
             {
                 IsRunning = false;
-				Result = ex.Message;
-			}
-        }
+                Result = response.Message;
+                return;
+            }
+
+            Rates = new ObservableCollection<Rate>((List<Rate>)response.Result);
+            IsRunning = false;
+            IsEnabled = true;
+			Result = "Ready to convert!";
+            Status = "Rates loaded from internet.";
+		}
         #endregion
 
         #region Commands
@@ -214,9 +234,9 @@
             if (string.IsNullOrEmpty(Amount))
             {
                 await Application.Current.MainPage.DisplayAlert(
-                    "Error", 
-                    "You must enter a value in amount.", 
-                    "Accept");
+                    Lenguages.Error, 
+                    Lenguages.AmountValidation, 
+                    Lenguages.Accept);
                 return;
             }
 
